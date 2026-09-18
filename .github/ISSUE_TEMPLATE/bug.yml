@@ -1,0 +1,17 @@
+name: Bug report
+about: Report incorrect analysis or a crash
+title: "[bug] "
+labels: [bug]
+body:
+  - type: textarea
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Minimal repository layout or fixture
+      description: Please remove secrets and private code. A tiny reproduction is ideal.
+  - type: textarea
+    attributes:
+      label: Expected result
