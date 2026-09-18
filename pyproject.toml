@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "changeripple"
+version = "0.1.0"
+description = "Local-first change-impact analysis for open-source maintainers"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "ChangeRipple contributors" }]
+keywords = ["git", "code-review", "testing", "static-analysis", "open-source", "ci"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Quality Assurance",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+changeripple = "changeripple.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Saatvik03092001/ChangeRipple"
+Issues = "https://github.com/Saatvik03092001/ChangeRipple/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/changeripple"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["src"]
+norecursedirs = ["tests/fixtures"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
