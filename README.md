@@ -20,6 +20,14 @@ A pull request may touch only two files while affecting ten more. Reviewers ofte
 
 ChangeRipple turns those questions into a repeatable local/CI check.
 
+## Why this matters for modern OSS
+
+Open-source maintainers already carry review, issue-triage, release, security, and quality responsibilities. As AI-assisted development makes it easier to produce larger or more frequent patches, maintainers need fast, deterministic ways to understand change impact before spending scarce review time.
+
+ChangeRipple is intentionally built as a **maintainer-side safety layer** rather than another code generator: it turns a Git diff into an explainable map of affected files, likely tests, documentation review needs, and higher-risk surfaces. It runs locally and can feed the same structured evidence to humans, CI, or coding agents without requiring a hosted source-code analysis service.
+
+The long-term goal is simple: help small OSS teams review more confidently without increasing maintenance overhead.
+
 ## Quick start
 
 ```bash
