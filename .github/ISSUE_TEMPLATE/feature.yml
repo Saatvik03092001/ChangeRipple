@@ -1,0 +1,12 @@
+name: Feature request
+about: Suggest a new language, resolver, or workflow
+labels: [enhancement]
+body:
+  - type: textarea
+    attributes:
+      label: Maintainer problem
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed behavior
