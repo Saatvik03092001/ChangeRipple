@@ -1,7 +1,9 @@
 from pathlib import Path
+
 from changeripple.analysis import analyze
 
 FIX = Path(__file__).parent / "fixtures"
+
 
 def test_analysis_suggests_related_tests_and_docs():
     report = analyze(FIX / "sample_py", ["pkg/core.py"], max_depth=4)
@@ -9,6 +11,13 @@ def test_analysis_suggests_related_tests_and_docs():
     assert "tests/test_api.py" in report.suggested_tests
     assert "README.md" in report.suggested_docs
     assert report.score >= 0
+
+
+def test_analysis_attaches_import_edge_evidence():
+    report = analyze(FIX / "sample_py", ["pkg/core.py"], max_depth=4)
+    impacts = {impact.path: impact for impact in report.affected_files}
+    assert impacts["pkg/service.py"].imported_path == "pkg/core.py"
+    assert impacts["pkg/api.py"].imported_path == "pkg/service.py"
 
 
 def test_public_api_signal():

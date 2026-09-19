@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .graph import build_reverse_graph, transitive_dependents
+from .graph import build_reverse_graph, transitive_dependents_with_evidence
 from .ignore import should_ignore
 from .models import AnalysisReport, FileImpact, RiskSignal, normalize_paths
 
@@ -102,8 +102,19 @@ def analyze(root: Path, changed_files: list[str], base: str | None = None, head:
     root = root.resolve()
     changed = normalize_paths(root, changed_files)
     reverse = build_reverse_graph(root)
-    affected = transitive_dependents(reverse, changed, max_depth=max_depth)
-    impacts = [FileImpact(path=p, reason="imports changed code", distance=d) for p, d in sorted(affected.items(), key=lambda item: (item[1], item[0]))]
+    evidence = transitive_dependents_with_evidence(reverse, changed, max_depth=max_depth)
+    affected = {path: distance for path, (distance, _) in evidence.items()}
+    impacts = [
+        FileImpact(
+            path=path,
+            reason="imports affected dependency",
+            distance=distance,
+            imported_path=imported_path,
+        )
+        for path, (distance, imported_path) in sorted(
+            evidence.items(), key=lambda item: (item[1][0], item[0])
+        )
+    ]
     tests = _suggest_tests(root, changed, affected)
     docs = _suggest_docs(root, changed)
     signals = _risk_signals(changed, affected, tests)

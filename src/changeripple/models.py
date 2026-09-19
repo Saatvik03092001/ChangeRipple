@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Iterable
 
@@ -10,6 +10,7 @@ class FileImpact:
     path: str
     reason: str
     distance: int
+    imported_path: str | None = None
 
 
 @dataclass(slots=True)
