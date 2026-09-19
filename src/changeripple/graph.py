@@ -72,12 +72,14 @@ def build_reverse_graph(root: Path, files: Iterable[Path] | None = None) -> dict
     return dict(reverse)
 
 
-def transitive_dependents(
+def transitive_dependents_with_evidence(
     reverse_graph: dict[str, set[str]], changed: Iterable[str], max_depth: int = 3
-) -> dict[str, int]:
-    distance: dict[str, int] = {}
-    queue: deque[tuple[str, int]] = deque((p, 0) for p in changed)
-    seen = set(changed)
+) -> dict[str, tuple[int, str]]:
+    """Return dependent distance plus the immediate import edge used to reach it."""
+    result: dict[str, tuple[int, str]] = {}
+    roots = sorted(set(changed))
+    queue: deque[tuple[str, int]] = deque((p, 0) for p in roots)
+    seen = set(roots)
     while queue:
         current, depth = queue.popleft()
         if depth >= max_depth:
@@ -86,6 +88,13 @@ def transitive_dependents(
             if dep in seen:
                 continue
             seen.add(dep)
-            distance[dep] = depth + 1
+            result[dep] = (depth + 1, current)
             queue.append((dep, depth + 1))
-    return distance
+    return result
+
+
+def transitive_dependents(
+    reverse_graph: dict[str, set[str]], changed: Iterable[str], max_depth: int = 3
+) -> dict[str, int]:
+    evidence = transitive_dependents_with_evidence(reverse_graph, changed, max_depth=max_depth)
+    return {path: distance for path, (distance, _) in evidence.items()}
