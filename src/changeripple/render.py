@@ -9,6 +9,17 @@ def to_json(report: AnalysisReport) -> str:
     return json.dumps(report.as_dict(), indent=2, sort_keys=True)
 
 
+def _render_test_suggestion(report: AnalysisReport, path: str) -> str:
+    evidence = next((item for item in report.test_evidence if item.path == path), None)
+    if evidence is None:
+        return f"- `{path}`"
+    if evidence.reason == "dependency-graph" and evidence.distance is not None:
+        return f"- `{path}` — dependency graph; distance {evidence.distance}"
+    if evidence.reason == "name-similarity" and evidence.related_path:
+        return f"- `{path}` — filename/module similarity to `{evidence.related_path}`"
+    return f"- `{path}` — {evidence.reason}"
+
+
 def to_markdown(report: AnalysisReport) -> str:
     lines = [
         "# ChangeRipple report",
@@ -26,7 +37,7 @@ def to_markdown(report: AnalysisReport) -> str:
         for impact in report.affected_files
     ] or ["- None detected"]
     lines += ["", "## Suggested tests"]
-    lines += [f"- `{p}`" for p in report.suggested_tests] or ["- No related tests detected"]
+    lines += [_render_test_suggestion(report, p) for p in report.suggested_tests] or ["- No related tests detected"]
     lines += ["", "## Documentation to review"]
     lines += [f"- `{p}`" for p in report.suggested_docs] or ["- No documentation review suggested"]
     lines += ["", "## Risk signals"]
