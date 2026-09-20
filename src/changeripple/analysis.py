@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .graph import build_reverse_graph, transitive_dependents_with_evidence
 from .ignore import should_ignore
-from .models import AnalysisReport, FileImpact, RiskSignal, normalize_paths
+from .models import AnalysisReport, FileImpact, RiskSignal, TestSuggestion, normalize_paths
 
 DOC_NAMES = {"README.md", "CONTRIBUTING.md", "CHANGELOG.md", "SECURITY.md", "docs"}
 PUBLIC_HINTS = ("api", "public", "interface", "schema", "routes", "client", "sdk")
@@ -34,7 +34,21 @@ def _test_similarity(changed: str, candidate: str) -> int:
     return score
 
 
-def _suggest_tests(root: Path, changed: list[str], affected: dict[str, int]) -> list[str]:
+def _best_similarity(changed: list[str], candidate: str) -> tuple[int, str | None]:
+    ranked = sorted(
+        ((_test_similarity(path, candidate), path) for path in changed),
+        key=lambda item: (-item[0], item[1]),
+    )
+    if not ranked or ranked[0][0] == 0:
+        return 0, None
+    return ranked[0]
+
+
+def _suggest_tests(
+    root: Path,
+    changed: list[str],
+    affected: dict[str, int],
+) -> tuple[list[str], list[TestSuggestion]]:
     all_tests = [
         p.relative_to(root).as_posix()
         for p in root.rglob("*")
@@ -44,14 +58,29 @@ def _suggest_tests(root: Path, changed: list[str], affected: dict[str, int]) -> 
         and _is_test(p.relative_to(root).as_posix())
     ]
     direct = {p for p in affected if _is_test(p)}
-    ranked: list[tuple[int, str]] = []
+    ranked: list[tuple[int, str, TestSuggestion]] = []
     for test in all_tests:
-        score = 5 if test in direct else 0
-        score += max((_test_similarity(c, test) for c in changed), default=0)
-        if score:
-            ranked.append((score, test))
+        similarity_score, related_path = _best_similarity(changed, test)
+        if test in direct:
+            score = 5 + similarity_score
+            evidence = TestSuggestion(
+                path=test,
+                reason="dependency-graph",
+                distance=affected[test],
+            )
+        elif similarity_score:
+            score = similarity_score
+            evidence = TestSuggestion(
+                path=test,
+                reason="name-similarity",
+                related_path=related_path,
+            )
+        else:
+            continue
+        ranked.append((score, test, evidence))
     ranked.sort(key=lambda item: (-item[0], item[1]))
-    return [p for _, p in ranked[:20]]
+    selected = ranked[:20]
+    return [path for _, path, _ in selected], [evidence for _, _, evidence in selected]
 
 
 def _suggest_docs(root: Path, changed: list[str]) -> list[str]:
@@ -115,11 +144,11 @@ def analyze(root: Path, changed_files: list[str], base: str | None = None, head:
             evidence.items(), key=lambda item: (item[1][0], item[0])
         )
     ]
-    tests = _suggest_tests(root, changed, affected)
+    tests, test_evidence = _suggest_tests(root, changed, affected)
     docs = _suggest_docs(root, changed)
     signals = _risk_signals(changed, affected, tests)
     return AnalysisReport(
         root=str(root), base=base, head=head, changed_files=changed, affected_files=impacts,
-        suggested_tests=tests, suggested_docs=docs, risk_signals=signals,
+        suggested_tests=tests, test_evidence=test_evidence, suggested_docs=docs, risk_signals=signals,
         score=_score(signals, len(affected)),
     )
