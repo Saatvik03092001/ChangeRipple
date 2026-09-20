@@ -14,6 +14,14 @@ class FileImpact:
 
 
 @dataclass(slots=True)
+class TestSuggestion:
+    path: str
+    reason: str
+    related_path: str | None = None
+    distance: int | None = None
+
+
+@dataclass(slots=True)
 class RiskSignal:
     level: str
     code: str
@@ -29,6 +37,7 @@ class AnalysisReport:
     changed_files: list[str]
     affected_files: list[FileImpact] = field(default_factory=list)
     suggested_tests: list[str] = field(default_factory=list)
+    test_evidence: list[TestSuggestion] = field(default_factory=list)
     suggested_docs: list[str] = field(default_factory=list)
     risk_signals: list[RiskSignal] = field(default_factory=list)
     score: int = 0
