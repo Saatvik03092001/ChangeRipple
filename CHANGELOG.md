@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add deterministic import-edge evidence to affected-file reports in both Markdown and JSON, making transitive impact results easier to audit in CI and maintainer workflows.
+- Explain every suggested test with deterministic evidence: either dependency-graph distance or the changed file that triggered filename/module similarity, while preserving the existing `suggested_tests` path list for consumers.
 
 ## 0.1.0 - Initial alpha
 
