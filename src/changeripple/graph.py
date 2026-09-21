@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict, deque
 from pathlib import Path
+import tomllib
 from typing import Iterable
 
 from .ignore import should_ignore
@@ -17,7 +18,69 @@ def discover_code_files(root: Path) -> list[Path]:
     )
 
 
-def _python_candidates(root: Path, source: Path, spec: str) -> list[Path]:
+def _configured_python_roots(root: Path) -> list[Path]:
+    pyproject = root / "pyproject.toml"
+    if not pyproject.is_file():
+        return []
+
+    try:
+        with pyproject.open("rb") as file:
+            config = tomllib.load(file)
+    except (OSError, tomllib.TOMLDecodeError):
+        return []
+
+    tool = config.get("tool")
+    if not isinstance(tool, dict):
+        return []
+
+    root_specs: list[str] = []
+
+    setuptools = tool.get("setuptools")
+    if isinstance(setuptools, dict):
+        package_dir = setuptools.get("package-dir")
+        if isinstance(package_dir, dict):
+            default_root = package_dir.get("")
+            if isinstance(default_root, str):
+                root_specs.append(default_root)
+
+    poetry = tool.get("poetry")
+    if isinstance(poetry, dict):
+        packages = poetry.get("packages")
+        if isinstance(packages, list):
+            for package in packages:
+                if isinstance(package, dict):
+                    source_root = package.get("from")
+                    if isinstance(source_root, str):
+                        root_specs.append(source_root)
+
+    hatch = tool.get("hatch")
+    if isinstance(hatch, dict):
+        build = hatch.get("build")
+        if isinstance(build, dict):
+            targets = build.get("targets")
+            if isinstance(targets, dict):
+                wheel = targets.get("wheel")
+                if isinstance(wheel, dict):
+                    packages = wheel.get("packages")
+                    if isinstance(packages, list):
+                        for package in packages:
+                            if isinstance(package, str):
+                                root_specs.append(Path(package).parent.as_posix())
+
+    configured: list[Path] = []
+    for root_spec in root_specs:
+        candidate = (root / root_spec).resolve()
+        if candidate.is_relative_to(root):
+            configured.append(candidate)
+    return configured
+
+
+def _python_roots(root: Path) -> list[Path]:
+    roots = [root, (root / "src").resolve(), *_configured_python_roots(root)]
+    return list(dict.fromkeys(roots))
+
+
+def _python_candidates(source: Path, spec: str, package_roots: Iterable[Path]) -> list[Path]:
     if not spec:
         return []
     if spec.startswith("."):
@@ -29,11 +92,12 @@ def _python_candidates(root: Path, source: Path, spec: str) -> list[Path]:
         parts = [p for p in module.split(".") if p]
         stem = base.joinpath(*parts) if parts else base
         return [stem.with_suffix(".py"), stem / "__init__.py"]
+
     parts = spec.split(".")
-    stem = root.joinpath(*parts)
-    candidates = [stem.with_suffix(".py"), stem / "__init__.py"]
-    stem2 = root / "src" / Path(*parts)
-    candidates += [stem2.with_suffix(".py"), stem2 / "__init__.py"]
+    candidates: list[Path] = []
+    for package_root in package_roots:
+        stem = package_root.joinpath(*parts)
+        candidates.extend([stem.with_suffix(".py"), stem / "__init__.py"])
     return candidates
 
 
@@ -52,13 +116,14 @@ def build_reverse_graph(root: Path, files: Iterable[Path] | None = None) -> dict
     root = root.resolve()
     files = list(files or discover_code_files(root))
     existing = {p.resolve() for p in files}
+    python_roots = _python_roots(root)
     reverse: dict[str, set[str]] = defaultdict(set)
     for source in files:
         suffix = source.suffix.lower()
         specs = parse_python_imports(source) if suffix in PY_EXT else parse_js_imports(source)
         for spec in specs:
             candidates = (
-                _python_candidates(root, source, spec)
+                _python_candidates(source, spec, python_roots)
                 if suffix in PY_EXT
                 else _js_candidates(source, spec)
             )

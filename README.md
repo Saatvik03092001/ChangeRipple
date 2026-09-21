@@ -57,7 +57,7 @@ Exit codes: `0` success, `1` operational error, `2` risk threshold exceeded.
 
 ## What v0.1 detects
 
-- Python imports, including common `src/` layouts and relative imports
+- Python imports, including relative imports, common `src/` layouts, and package roots declared through common setuptools, Poetry, and Hatch `pyproject.toml` metadata
 - JavaScript/TypeScript relative `import`, `require()`, and dynamic import paths
 - Transitive dependent files up to a configurable depth
 - Test files reached through the dependency graph
