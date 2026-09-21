@@ -34,6 +34,20 @@ def test_transitive_dependents_preserve_import_edge_evidence():
     assert deps["pkg/api.py"] == (2, "pkg/service.py")
 
 
+def test_python_reverse_graph_uses_setuptools_package_dir():
+    root = FIX / "sample_py_setuptools"
+    graph = build_reverse_graph(root)
+    assert "lib/acme/service.py" in graph["lib/acme/core.py"]
+    assert "tests/test_core.py" in graph["lib/acme/core.py"]
+
+
+def test_python_reverse_graph_uses_poetry_package_source():
+    root = FIX / "sample_py_poetry"
+    graph = build_reverse_graph(root)
+    assert "python/widget/service.py" in graph["python/widget/core.py"]
+    assert "tests/test_core.py" in graph["python/widget/core.py"]
+
+
 def test_js_reverse_graph():
     root = FIX / "sample_js"
     graph = build_reverse_graph(root)
