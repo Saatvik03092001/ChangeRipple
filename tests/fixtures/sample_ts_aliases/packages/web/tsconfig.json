@@ -1,0 +1,10 @@
+{
+  // JSONC comments and trailing commas are both common in tsconfig files.
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@lib/*": ["src/lib/*"],
+      "@app/*": ["src/*"],
+    },
+  },
+}

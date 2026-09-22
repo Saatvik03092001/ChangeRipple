@@ -53,3 +53,10 @@ def test_js_reverse_graph():
     graph = build_reverse_graph(root)
     assert "src/service.ts" in graph["src/util.ts"]
     assert "tests/service.test.ts" in graph["src/service.ts"]
+
+
+def test_ts_reverse_graph_uses_nearest_tsconfig_path_aliases():
+    root = FIX / "sample_ts_aliases"
+    graph = build_reverse_graph(root)
+    assert "packages/web/src/service.ts" in graph["packages/web/src/lib/util.ts"]
+    assert "packages/web/tests/service.test.ts" in graph["packages/web/src/service.ts"]
