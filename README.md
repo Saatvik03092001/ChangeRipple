@@ -59,6 +59,7 @@ Exit codes: `0` success, `1` operational error, `2` risk threshold exceeded.
 
 - Python imports, including relative imports, common `src/` layouts, and package roots declared through common setuptools, Poetry, and Hatch `pyproject.toml` metadata
 - JavaScript/TypeScript relative `import`, `require()`, and dynamic import paths
+- Simple TypeScript `compilerOptions.paths` aliases from the nearest `tsconfig.json`, including exact mappings and single-wildcard patterns
 - Transitive dependent files up to a configurable depth
 - Test files reached through the dependency graph
 - Filename/module similarity for extra test suggestions
@@ -101,7 +102,7 @@ The repository includes ready-to-run CI and pull-request impact workflows under 
 ## Current limitations
 
 - Static imports only; runtime reflection/plugin loading can escape the graph.
-- JS/TS path aliases (`tsconfig` mappings) are not resolved yet.
+- TypeScript `tsconfig` `extends`, project references, and alias patterns with more than one `*` are not followed yet.
 - Python namespace packages and unusual import hooks may be incomplete.
 - Test recommendation is heuristic; it never claims full test coverage.
 - Deleted files are listed by Git but cannot be parsed from the working tree.
