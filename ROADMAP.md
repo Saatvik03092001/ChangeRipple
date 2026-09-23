@@ -1,10 +1,12 @@
 # Roadmap
 
 ## v0.2 — better language resolution
-- Resolve Python package roots from `pyproject.toml`.
-- Resolve TypeScript `paths` aliases and workspace packages.
-- Add Go import support.
-- Add Rust module/use support.
+- [x] Resolve Python package roots from `pyproject.toml`.
+- [x] Resolve common TypeScript `paths` aliases.
+- [x] Add initial Go module-local import support.
+- [ ] Resolve TypeScript workspace packages and deeper `tsconfig` composition.
+- [ ] Add Go workspace/replace/build-tag awareness.
+- [ ] Add Rust module/use support.
 
 ## v0.3 — smarter test mapping
 - Learn mappings from coverage.py / pytest JSON reports when provided.
