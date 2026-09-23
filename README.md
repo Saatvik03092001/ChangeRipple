@@ -2,7 +2,7 @@
 
 **See the likely blast radius of a code change before you merge it.**
 
-ChangeRipple is a small, local-first CLI for open-source maintainers and reviewers. It inspects changed files, follows local Python and JavaScript/TypeScript import relationships, suggests related tests and documentation, and highlights review-risk signals.
+ChangeRipple is a small, local-first CLI for open-source maintainers and reviewers. It inspects changed files, follows local Python, JavaScript/TypeScript, and Go import relationships, suggests related tests and documentation, and highlights review-risk signals.
 
 It does **not** send source code to a cloud service and it does **not** require an AI API key.
 
@@ -60,6 +60,7 @@ Exit codes: `0` success, `1` operational error, `2` risk threshold exceeded.
 - Python imports, including relative imports, common `src/` layouts, and package roots declared through common setuptools, Poetry, and Hatch `pyproject.toml` metadata
 - JavaScript/TypeScript relative `import`, `require()`, and dynamic import paths
 - Simple TypeScript `compilerOptions.paths` aliases from the nearest `tsconfig.json`, including exact mappings and single-wildcard patterns
+- Go module-local imports resolved from the nearest `go.mod` `module` directive, including ordinary single, grouped, and aliased import forms
 - Transitive dependent files up to a configurable depth
 - Test files reached through the dependency graph
 - Filename/module similarity for extra test suggestions
@@ -104,6 +105,7 @@ The repository includes ready-to-run CI and pull-request impact workflows under 
 - Static imports only; runtime reflection/plugin loading can escape the graph.
 - TypeScript `tsconfig` `extends`, project references, and alias patterns with more than one `*` are not followed yet.
 - Python namespace packages and unusual import hooks may be incomplete.
+- Go support does not yet interpret `go.work`, `replace`/vendor resolution, or build tags; it resolves imports inside the nearest module only.
 - Test recommendation is heuristic; it never claims full test coverage.
 - Deleted files are listed by Git but cannot be parsed from the working tree.
 

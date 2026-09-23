@@ -7,9 +7,16 @@ import tomllib
 from typing import Iterable
 
 from .ignore import should_ignore
-from .parsers import JS_EXT, PY_EXT, parse_js_imports, parse_python_imports
+from .parsers import (
+    GO_EXT,
+    JS_EXT,
+    PY_EXT,
+    parse_go_imports,
+    parse_js_imports,
+    parse_python_imports,
+)
 
-CODE_EXT = PY_EXT | JS_EXT
+CODE_EXT = PY_EXT | JS_EXT | GO_EXT
 JS_RESOLVE_EXTS = [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx"]
 
 
@@ -283,17 +290,96 @@ def _js_candidates(
     return _tsconfig_alias_candidates(root, source, spec, tsconfig_cache)
 
 
+def _read_go_module(path: Path) -> str | None:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    for raw_line in text.splitlines():
+        line = raw_line.split("//", 1)[0].strip()
+        if not line.startswith("module "):
+            continue
+        module = line[len("module "):].strip()
+        if module and not any(char.isspace() for char in module):
+            return module
+    return None
+
+
+def _nearest_go_mod(root: Path, source: Path) -> Path | None:
+    current = source.parent.resolve()
+    while current.is_relative_to(root):
+        candidate = current / "go.mod"
+        if candidate.is_file():
+            return candidate
+        if current == root:
+            break
+        current = current.parent
+    return None
+
+
+def _go_candidates(
+    root: Path,
+    source: Path,
+    spec: str,
+    cache: dict[Path, str | None],
+) -> list[Path]:
+    go_mod = _nearest_go_mod(root, source)
+    if go_mod is None:
+        return []
+    if go_mod not in cache:
+        cache[go_mod] = _read_go_module(go_mod)
+    module = cache[go_mod]
+    if not module:
+        return []
+
+    if spec == module:
+        relative = ""
+    elif spec.startswith(f"{module}/"):
+        relative = spec[len(module) + 1:]
+    else:
+        return []
+
+    module_root = go_mod.parent.resolve()
+    package_dir = (module_root / relative).resolve()
+    if not package_dir.is_relative_to(module_root) or not package_dir.is_relative_to(root):
+        return []
+    return sorted(
+        path for path in package_dir.glob("*.go")
+        if path.is_file() and not path.name.endswith("_test.go")
+    )
+
+
 def build_reverse_graph(root: Path, files: Iterable[Path] | None = None) -> dict[str, set[str]]:
     root = root.resolve()
     files = list(files or discover_code_files(root))
     existing = {p.resolve() for p in files}
     python_roots = _python_roots(root)
     tsconfig_cache: dict[Path, dict[str, object] | None] = {}
+    go_module_cache: dict[Path, str | None] = {}
     reverse: dict[str, set[str]] = defaultdict(set)
     for source in files:
         suffix = source.suffix.lower()
-        specs = parse_python_imports(source) if suffix in PY_EXT else parse_js_imports(source)
+        if suffix in PY_EXT:
+            specs = parse_python_imports(source)
+        elif suffix in JS_EXT:
+            specs = parse_js_imports(source)
+        elif suffix in GO_EXT:
+            specs = parse_go_imports(source)
+        else:
+            continue
+
         for spec in specs:
+            if suffix in GO_EXT:
+                candidates = _go_candidates(root, source, spec, go_module_cache)
+                for candidate in candidates:
+                    resolved = candidate.resolve()
+                    if resolved not in existing:
+                        continue
+                    imported = resolved.relative_to(root).as_posix()
+                    importer = source.resolve().relative_to(root).as_posix()
+                    reverse[imported].add(importer)
+                continue
+
             candidates = (
                 _python_candidates(source, spec, python_roots)
                 if suffix in PY_EXT
