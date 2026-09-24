@@ -8,6 +8,17 @@ body:
       label: What happened?
     validations:
       required: true
+  - type: input
+    attributes:
+      label: ChangeRipple version
+      description: Paste the output of `changeripple --version`.
+      placeholder: changeripple 0.1.0
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Python and platform
+      description: Example: Python 3.12 on Ubuntu 24.04 or Python 3.11 on Windows 11.
   - type: textarea
     attributes:
       label: Minimal repository layout or fixture
