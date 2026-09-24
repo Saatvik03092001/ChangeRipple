@@ -17,6 +17,8 @@ ruff check src tests
 - Add support for a common project layout.
 - Add tests before changing heuristics.
 
+See [docs/maintainer-backlog.md](docs/maintainer-backlog.md) for current contributor targets.
+
 ## Ground rules
 
 - Keep runtime dependencies minimal.
@@ -27,4 +29,8 @@ ruff check src tests
 
 ## Pull requests
 
-Describe: the problem, the approach, test evidence, and known limitations. Small focused PRs are easiest to review.
+Describe: the problem, the approach, test evidence, and known limitations. Small focused PRs are easiest to review. The repository PR template mirrors these fields so reviewers get consistent evidence.
+
+## Maintainer releases
+
+Before tagging a release, follow [docs/releasing.md](docs/releasing.md). The checklist keeps package metadata, runtime version, changelog, smoke checks, and GitHub release notes aligned.
