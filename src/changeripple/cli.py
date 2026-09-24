@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from . import __version__
 from .analysis import analyze
 from .git import GitError, changed_files as git_changed_files, repo_root
 from .render import to_json, to_markdown
@@ -11,6 +12,7 @@ from .render import to_json, to_markdown
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="changeripple", description="Trace the likely ripple effects of a code change.")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("path", nargs="?", default=".", help="Repository path (default: current directory)")
     parser.add_argument("--base", help="Base git revision")
     parser.add_argument("--head", help="Head git revision (used with --base)")
