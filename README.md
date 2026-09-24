@@ -35,6 +35,12 @@ python -m pip install -e .
 changeripple . --changed src/core.py
 ```
 
+Check the installed version when reporting or reproducing an issue:
+
+```bash
+changeripple --version
+```
+
 Against Git history:
 
 ```bash
@@ -121,7 +127,7 @@ ruff check src tests
 
 ## Contributing
 
-Contributions and real-world false-positive reports are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributions and real-world false-positive reports are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). For bug reports, include `changeripple --version`, the Python version/platform, and a tiny reproduction when possible.
 
 ## Security
 
