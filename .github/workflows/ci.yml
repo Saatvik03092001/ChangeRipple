@@ -21,3 +21,21 @@ jobs:
       - run: python -m pip install -e ".[dev]"
       - run: ruff check src tests --select E9,F63,F7,F82
       - run: pytest
+
+  package-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build wheel
+        run: python -m pip wheel . --no-deps --wheel-dir dist
+      - name: Install wheel in a clean environment
+        run: |
+          python -m venv /tmp/changeripple-smoke
+          /tmp/changeripple-smoke/bin/python -m pip install --no-deps dist/changeripple-*.whl
+      - name: Smoke-test installed CLI outside the source tree
+        run: |
+          cd /tmp
+          /tmp/changeripple-smoke/bin/changeripple --version
