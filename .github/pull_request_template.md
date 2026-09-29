@@ -11,7 +11,7 @@
 <!-- List the checks you ran and any fixture/regression coverage added. -->
 
 - [ ] `pytest`
-- [ ] `ruff check src tests --select E9,F63,F7,F82`
+- [ ] `ruff check src tests`
 - [ ] Packaging/release smoke check when packaging behavior changes
 
 ## Maintainer impact
