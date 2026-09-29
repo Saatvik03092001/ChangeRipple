@@ -45,3 +45,6 @@ norecursedirs = ["tests/fixtures"]
 line-length = 100
 target-version = "py311"
 exclude = ["tests/fixtures"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/changeripple/git.py" = ["UP022"]
