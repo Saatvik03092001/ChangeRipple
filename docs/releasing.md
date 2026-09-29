@@ -12,7 +12,7 @@ This checklist keeps the package version, runtime version, changelog, built arti
 
    ```bash
    python -m pip install -e ".[dev]"
-   ruff check src tests --select E9,F63,F7,F82
+   ruff check src tests
    pytest
    ```
 
