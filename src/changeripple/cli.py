@@ -6,7 +6,8 @@ from pathlib import Path
 
 from . import __version__
 from .analysis import analyze
-from .git import GitError, changed_files as git_changed_files, repo_root
+from .git import GitError, repo_root
+from .git import changed_files as git_changed_files
 from .render import to_json, to_markdown
 
 
