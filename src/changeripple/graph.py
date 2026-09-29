@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from collections import defaultdict, deque
 import json
-from pathlib import Path
 import tomllib
-from typing import Iterable
+from collections import defaultdict, deque
+from collections.abc import Iterable
+from pathlib import Path
 
 from .ignore import should_ignore
 from .parsers import (
