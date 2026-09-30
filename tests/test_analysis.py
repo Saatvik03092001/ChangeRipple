@@ -49,3 +49,22 @@ def test_security_signal_is_high(tmp_path):
     (tmp_path / "auth.py").write_text("TOKEN = None\n", encoding="utf-8")
     report = analyze(tmp_path, ["auth.py"])
     assert any(s.code == "security-sensitive" and s.level == "high" for s in report.risk_signals)
+
+
+def test_workflow_dotfile_path_is_preserved_for_risk_detection(tmp_path):
+    workflow = tmp_path / ".github" / "workflows" / "ci.yml"
+    workflow.parent.mkdir(parents=True)
+    workflow.write_text("name: CI\n", encoding="utf-8")
+
+    report = analyze(tmp_path, [".github/workflows/ci.yml"])
+
+    assert report.changed_files == [".github/workflows/ci.yml"]
+    assert any(
+        signal.code == "build-config" and signal.path == ".github/workflows/ci.yml"
+        for signal in report.risk_signals
+    )
+
+
+def test_changed_path_outside_repository_is_ignored(tmp_path):
+    report = analyze(tmp_path, ["../outside.py"])
+    assert report.changed_files == []

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Preserve leading-dot repository paths such as `.github/workflows/*` during changed-file normalization so workflow/config risk signals are not silently lost; ignore explicit changed paths that resolve outside the repository.
 - Resolve module-local Go imports from the nearest `go.mod`, including ordinary single, grouped, and aliased import forms, so Go package changes participate in deterministic impact analysis.
 - Resolve straightforward TypeScript `compilerOptions.paths` aliases from the nearest `tsconfig.json`, including common JSONC comments/trailing commas, exact mappings, and single-wildcard patterns.
 - Read Python package-root hints from `pyproject.toml` for common setuptools, Poetry, and Hatch layouts, improving import resolution beyond the built-in repository-root and `src/` fallbacks.

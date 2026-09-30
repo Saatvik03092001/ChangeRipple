@@ -47,17 +47,19 @@ class AnalysisReport:
 
 
 def normalize_paths(root: Path, paths: Iterable[Path | str]) -> list[str]:
+    root = root.resolve()
     out: list[str] = []
     seen: set[str] = set()
     for item in paths:
-        p = Path(item)
-        if p.is_absolute():
-            try:
-                p = p.relative_to(root)
-            except ValueError:
-                continue
-        value = p.as_posix().lstrip("./")
-        if value and value not in seen:
+        candidate = Path(item)
+        if not candidate.is_absolute():
+            candidate = root / candidate
+        try:
+            relative = candidate.resolve().relative_to(root)
+        except ValueError:
+            continue
+        value = relative.as_posix()
+        if value and value != "." and value not in seen:
             seen.add(value)
             out.append(value)
     return sorted(out)
